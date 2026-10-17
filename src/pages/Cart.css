@@ -1,0 +1,40 @@
+.cart__list {
+  list-style: none;
+  padding: 0;
+  margin: 0 auto 20px;
+  max-width: 600px;
+}
+
+.cart__row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.cart__name {
+  flex: 1;
+  text-align: left;
+  color: var(--text-h);
+}
+
+.cart__price {
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.cart__total {
+  margin-bottom: 16px;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.cart__back {
+  margin-top: 12px;
+}
+
+.cart__back a {
+  color: var(--accent);
+}

@@ -1,0 +1,49 @@
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.navbar__logo {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.navbar__links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.navbar__links a {
+  padding: 6px 12px;
+  border-radius: 8px;
+  color: var(--text);
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.navbar__links a:hover {
+  background: var(--code-bg);
+}
+
+/* Подсветка активной ссылки (класс active ставит NavLink) */
+.navbar__links a.active {
+  color: #fff;
+  background: var(--accent);
+}
+
+.navbar__theme {
+  padding: 8px 14px;
+  font-size: 15px;
+  color: var(--text-h);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
