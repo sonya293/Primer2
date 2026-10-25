@@ -12,7 +12,7 @@ export default function Navbar() {
   // NavLink сам добавляет класс "active" ссылке текущей страницы
   return (
     <nav className="navbar">
-      <span className="navbar__logo">Магазин</span>
+      <span className="navbar__logo">Магазин услуг</span>
 
       <div className="navbar__links">
         <NavLink to="/" end>
@@ -20,7 +20,9 @@ export default function Navbar() {
         </NavLink>
         <NavLink to="/cart">Корзина ({totalCount})</NavLink>
         <NavLink to="/dashboard">Кабинет</NavLink>
+        {user?.role === "admin" && <NavLink to="/admin">Админка</NavLink>}
         {!user && <NavLink to="/login">Вход</NavLink>}
+        {!user && <NavLink to="/register">Регистрация</NavLink>}
       </div>
 
       <button className="navbar__theme" onClick={toggleTheme}>

@@ -4,6 +4,13 @@
   gap: 12px;
   max-width: 320px;
   margin: 0 auto;
+  text-align: left;
+}
+
+.login__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .login input {
@@ -15,7 +22,26 @@
   border-radius: 8px;
 }
 
+.login input[aria-invalid="true"] {
+  border-color: #e5484d;
+}
+
 .login__error {
   color: #e5484d;
   font-size: 15px;
+}
+
+.login__error--box {
+  padding: 8px 12px;
+  background: rgba(229, 72, 77, 0.1);
+  border-radius: 8px;
+}
+
+.login__hint {
+  font-size: 14px;
+  text-align: center;
+}
+
+.login__hint a {
+  color: var(--accent);
 }

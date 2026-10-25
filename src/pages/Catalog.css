@@ -1,0 +1,85 @@
+.catalog {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 24px;
+  align-items: start;
+  text-align: left;
+}
+
+.catalog__aside {
+  position: sticky;
+  top: 16px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.catalog__aside h2 {
+  margin-bottom: 12px;
+}
+
+.filter {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  color: var(--text-h);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.filter__item:hover {
+  background: var(--code-bg);
+}
+
+.filter__item input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.filter__name {
+  flex: 1;
+}
+
+.filter__count {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.coupon-info {
+  margin: 0 auto 24px;
+  padding: 10px 16px;
+  max-width: 700px;
+  font-size: 16px;
+  color: var(--text-h);
+  background: var(--accent-bg);
+  border-radius: 8px;
+}
+
+@media (max-width: 760px) {
+  .catalog {
+    grid-template-columns: 1fr;
+  }
+  .catalog__aside {
+    position: static;
+  }
+}
