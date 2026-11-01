@@ -19,3 +19,16 @@ export function formatDuration(min) {
 
 export const formatDate = (iso) =>
   new Date(iso).toLocaleString("ru-RU", { dateStyle: "medium", timeStyle: "short" });
+
+// Дата без времени (YYYY-MM-DD) в виде «10 янв. 2027 г.»
+export const formatDay = (day) =>
+  new Date(`${day}T00:00:00`).toLocaleDateString("ru-RU", { dateStyle: "medium" });
+
+// Статусы заказа и способы оплаты — подписи для интерфейса
+export const ORDER_STATUS = {
+  new: "Новый",
+  processing: "В обработке",
+  done: "Выполнен",
+  cancelled: "Отменён",
+};
+export const PAYMENT_STATUS = { paid: "Оплачено картой", pending: "Оплата при получении" };

@@ -1,0 +1,19 @@
+.service-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 130px;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.service-image--photo {
+  object-fit: cover;
+}
+
+.service-image__icon {
+  font-size: 58px;
+  line-height: 1;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.18));
+}

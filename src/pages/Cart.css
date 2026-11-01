@@ -112,3 +112,15 @@
   border: 1px solid var(--border);
   border-radius: 8px;
 }
+
+.checkout h2,
+.form h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+@media (max-width: 600px) {
+  .cart__row {
+    flex-wrap: wrap;
+  }
+}

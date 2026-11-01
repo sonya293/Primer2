@@ -1,84 +1,78 @@
-import { createContext, useContext, useEffect, useReducer } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { api } from "../api.js";
+import { useAuth } from "./AuthContext.jsx";
 
 const CartContext = createContext(null);
 
-// Корзина хранит только id услуги и количество: актуальные цены и скидки
-// берутся с сервера при показе корзины.
-const STORAGE_KEY = "cart_services";
+const EMPTY = { items: [], count: 0, total: 0, fullTotal: 0 };
 
-function loadCart() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [];
-  } catch {
-    return [];
-  }
-}
-
-// Редюсер описывает все изменения корзины.
-// Состояние — массив позиций вида { id, qty }.
-function cartReducer(state, action) {
-  switch (action.type) {
-    case "ADD": {
-      const exists = state.find((item) => item.id === action.id);
-      if (exists) {
-        // Товар уже в корзине — увеличиваем количество
-        return state.map((item) =>
-          item.id === action.id
-            ? { ...item, qty: item.qty + 1 }
-            : item,
-        );
-      }
-      return [...state, { id: action.id, qty: 1 }];
-    }
-    case "INCREMENT":
-      // +1 к количеству выбранного товара
-      return state.map((item) =>
-        item.id === action.id ? { ...item, qty: item.qty + 1 } : item,
-      );
-    case "DECREMENT":
-      // -1 к количеству; если стало 0 — товар удаляется из корзины
-      return state
-        .map((item) =>
-          item.id === action.id ? { ...item, qty: item.qty - 1 } : item,
-        )
-        .filter((item) => item.qty > 0);
-    case "REMOVE":
-      return state.filter((item) => item.id !== action.id);
-    case "CLEAR":
-      return [];
-    default:
-      return state;
-  }
-}
-
+// Корзина хранится на сервере (таблица cart_items), поэтому она у каждого пользователя
+// своя и сохраняется после выхода. Цены и скидки считает сервер.
 export function CartProvider({ children }) {
-  // Третий аргумент — функция, которая вычисляет начальное состояние
-  const [items, dispatch] = useReducer(cartReducer, [], loadCart);
+  const { user } = useAuth();
+  const [cart, setCart] = useState(EMPTY);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false); // идёт запрос на изменение корзины
+  const [attempt, setAttempt] = useState(0);
 
-  // При каждом изменении корзины сохраняем её в localStorage
+  // У администратора и гостя корзины нет
+  const userId = user && user.role !== "admin" ? user.id : null;
+  const couponId = user?.coupon?.id ?? null; // сменился купон — цены надо пересчитать
+
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  }, [items]);
+    if (!userId) {
+      setCart(EMPTY);
+      setError("");
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setError("");
+    api("/cart")
+      .then((data) => !cancelled && setCart(data))
+      .catch((e) => !cancelled && setError(e.message))
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, couponId, attempt]);
 
-  const addToCart = (service) => dispatch({ type: "ADD", id: service.id });
-  const increaseQty = (id) => dispatch({ type: "INCREMENT", id });
-  const decreaseQty = (id) => dispatch({ type: "DECREMENT", id });
-  const removeFromCart = (id) => dispatch({ type: "REMOVE", id });
-  const clearCart = () => dispatch({ type: "CLEAR" });
+  // Выполняет запрос к API и обновляет корзину ответом сервера.
+  // Ошибку пробрасываем дальше, чтобы компонент показал её пользователю.
+  async function mutate(path, options) {
+    setBusy(true);
+    try {
+      setCart(await api(path, options));
+    } finally {
+      setBusy(false);
+    }
+  }
 
-  const totalCount = items.reduce((sum, item) => sum + item.qty, 0);
+  const addToCart = (serviceId) => mutate("/cart", { method: "POST", body: { serviceId } });
+  const setQuantity = (serviceId, quantity) =>
+    mutate(`/cart/${serviceId}`, { method: "PUT", body: { quantity } });
+  const removeFromCart = (serviceId) => mutate(`/cart/${serviceId}`, { method: "DELETE" });
+  const clearCart = () => mutate("/cart", { method: "DELETE" });
+  const reload = () => setAttempt((n) => n + 1);
+  // После оформления заказа сервер уже очистил корзину — просто обнуляем состояние
+  const resetCart = () => setCart(EMPTY);
 
   return (
     <CartContext.Provider
       value={{
-        items,
+        cart,
+        items: cart.items,
+        totalCount: cart.count,
+        loading,
+        error,
+        busy,
         addToCart,
-        increaseQty,
-        decreaseQty,
+        setQuantity,
         removeFromCart,
         clearCart,
-        totalCount,
+        reload,
+        resetCart,
       }}
     >
       {children}

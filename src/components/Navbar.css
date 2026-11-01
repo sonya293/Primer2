@@ -47,3 +47,21 @@
   border-radius: 8px;
   cursor: pointer;
 }
+.navbar {
+  flex-wrap: wrap;
+}
+
+.navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navbar__user {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-h);
+  font-size: 15px;
+}

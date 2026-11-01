@@ -61,3 +61,21 @@
 .admin__num {
   width: 64px;
 }
+
+.admin__service-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+  padding: 12px 0;
+}
+
+.admin__service-actions {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin input[aria-invalid="true"] {
+  border-color: #e5484d;
+}

@@ -43,6 +43,8 @@ db.exec(`
     password_hash TEXT NOT NULL,
     role_id       INTEGER NOT NULL REFERENCES roles(id),
     coupon_id     INTEGER REFERENCES coupons(id) ON DELETE SET NULL,
+    phone         TEXT NOT NULL DEFAULT '',
+    address       TEXT NOT NULL DEFAULT '',   -- адрес доставки по умолчанию
     created_at    TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
@@ -58,7 +60,9 @@ db.exec(`
     description      TEXT NOT NULL DEFAULT '',
     duration_min     INTEGER NOT NULL CHECK (duration_min > 0),
     price            INTEGER NOT NULL CHECK (price >= 0),
-    discount_percent INTEGER NOT NULL DEFAULT 0 CHECK (discount_percent BETWEEN 0 AND 90)
+    discount_percent INTEGER NOT NULL DEFAULT 0 CHECK (discount_percent BETWEEN 0 AND 90),
+    image            TEXT NOT NULL DEFAULT '',  -- путь к картинке (необязательно)
+    is_active        INTEGER NOT NULL DEFAULT 1 -- 0 = услуга удалена из каталога
   );
 
   CREATE TABLE IF NOT EXISTS payments (
@@ -82,7 +86,69 @@ db.exec(`
     status           TEXT NOT NULL DEFAULT 'booked',
     created_at       TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  -- Корзина хранится на сервере: у каждого пользователя своя, одна строка на услугу
+  CREATE TABLE IF NOT EXISTS cart_items (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    service_id INTEGER NOT NULL REFERENCES services(id),
+    quantity   INTEGER NOT NULL CHECK (quantity BETWEEN 1 AND 20),
+    UNIQUE (user_id, service_id)
+  );
+
+  -- Заказ: адрес и дата доставки + статус; позиции заказа лежат в appointments
+  CREATE TABLE IF NOT EXISTS orders (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id       INTEGER NOT NULL REFERENCES users(id),
+    payment_id    INTEGER REFERENCES payments(id),
+    address       TEXT NOT NULL,
+    delivery_date TEXT NOT NULL,              -- YYYY-MM-DD
+    status        TEXT NOT NULL DEFAULT 'new'
+                  CHECK (status IN ('new', 'processing', 'done', 'cancelled')),
+    created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  -- Отзывы: один отзыв пользователя на одну услугу
+  CREATE TABLE IF NOT EXISTS reviews (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    service_id INTEGER NOT NULL REFERENCES services(id),
+    rating     INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    comment    TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (user_id, service_id)
+  );
+
+  -- Коды восстановления пароля (живут 15 минут)
+  CREATE TABLE IF NOT EXISTS password_resets (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    code_hash  TEXT NOT NULL,
+    expires_at INTEGER NOT NULL,
+    attempts   INTEGER NOT NULL DEFAULT 0
+  );
 `);
+
+// Миграция: в базах, созданных раньше, новых колонок ещё нет
+const serviceCols = db.prepare("PRAGMA table_info(services)").all().map((c) => c.name);
+if (!serviceCols.includes("image")) {
+  db.exec("ALTER TABLE services ADD COLUMN image TEXT NOT NULL DEFAULT ''");
+}
+if (!serviceCols.includes("is_active")) {
+  db.exec("ALTER TABLE services ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1");
+}
+
+const userCols = db.prepare("PRAGMA table_info(users)").all().map((c) => c.name);
+if (!userCols.includes("phone")) {
+  db.exec("ALTER TABLE users ADD COLUMN phone TEXT NOT NULL DEFAULT ''");
+}
+if (!userCols.includes("address")) {
+  db.exec("ALTER TABLE users ADD COLUMN address TEXT NOT NULL DEFAULT ''");
+}
+const apCols = db.prepare("PRAGMA table_info(appointments)").all().map((c) => c.name);
+if (!apCols.includes("order_id")) {
+  db.exec("ALTER TABLE appointments ADD COLUMN order_id INTEGER REFERENCES orders(id)");
+}
 
 // ---------- Начальные данные (только при пустой базе) ----------
 function seed() {
@@ -99,11 +165,11 @@ function seed() {
   insCoupon.run("VIP", "VIP", 20);
 
   const insUser = db.prepare(
-    "INSERT INTO users (name, email, password_hash, role_id, coupon_id) VALUES (?, ?, ?, ?, ?)",
+    "INSERT INTO users (name, email, password_hash, role_id, coupon_id, phone, address) VALUES (?, ?, ?, ?, ?, ?, ?)",
   );
-  insUser.run("Администратор", "admin@shop.ru", hashPassword("admin123"), 1, null);
-  insUser.run("Анна Петрова", "anna@example.com", hashPassword("user123"), 2, 3);
-  insUser.run("Иван Сидоров", "ivan@example.com", hashPassword("user123"), 2, 1);
+  insUser.run("Администратор", "admin@shop.ru", hashPassword("admin123"), 1, null, "+7 900 000-00-00", "");
+  insUser.run("Анна Петрова", "anna@example.com", hashPassword("user123"), 2, 3, "+7 911 111-11-11", "г. Москва, ул. Ленина, д. 5, кв. 12");
+  insUser.run("Иван Сидоров", "ivan@example.com", hashPassword("user123"), 2, 1, "+7 922 222-22-22", "");
 
   const cats = ["Парикмахерские услуги", "Маникюр и педикюр", "Массаж", "Косметология", "СПА-программы"];
   const insCat = db.prepare("INSERT INTO categories (name) VALUES (?)");
@@ -138,6 +204,14 @@ function seed() {
      VALUES (?, ?, ?, ?, ?, ?)`,
   );
   services.forEach((s) => insService.run(...s));
+
+  // Несколько демо-отзывов, чтобы раздел не был пустым
+  const insReview = db.prepare(
+    "INSERT INTO reviews (user_id, service_id, rating, comment) VALUES (?, ?, ?, ?)",
+  );
+  insReview.run(2, 1, 5, "Отличная стрижка, мастер всё объяснил и учёл мои пожелания.");
+  insReview.run(3, 1, 4, "Хорошо, но пришлось немного подождать.");
+  insReview.run(2, 10, 5, "Расслабляющий массаж, ушла как новая!");
 }
 
 seed();

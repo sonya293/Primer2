@@ -24,9 +24,10 @@ export function AuthProvider({ children }) {
   }
 
   const login = (email, password) => authenticate("/auth/login", { email, password });
-  const register = (name, email, password) =>
-    authenticate("/auth/register", { name, email, password });
+  const register = (name, email, phone, password) =>
+    authenticate("/auth/register", { name, email, phone, password });
 
+  // Выход: токен удаляется, корзина остаётся на сервере и вернётся при следующем входе
   const logout = () => {
     setToken(null);
     setUser(null);
@@ -36,7 +37,7 @@ export function AuthProvider({ children }) {
   const refresh = () => api("/auth/me").then((r) => setUser(r.user));
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, refresh }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, refresh, updateUser: setUser }}>
       {children}
     </AuthContext.Provider>
   );

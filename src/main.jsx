@@ -7,17 +7,17 @@ import { ThemeProvider } from "./context/ThemeContext.jsx";
 import { CartProvider } from "./context/CartContext.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 
-// Провайдеры оборачивают всё приложение, поэтому тема, корзина и
-// пользователь доступны любому компоненту через useContext.
+// Провайдеры оборачивают всё приложение, поэтому тема, корзина и пользователь
+// доступны любому компоненту. Корзина внутри AuthProvider: она зависит от пользователя.
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
       <ThemeProvider>
-        <CartProvider>
-          <AuthProvider>
+        <AuthProvider>
+          <CartProvider>
             <App />
-          </AuthProvider>
-        </CartProvider>
+          </CartProvider>
+        </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>
   </StrictMode>,

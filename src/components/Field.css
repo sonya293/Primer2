@@ -1,0 +1,55 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+
+.field__label {
+  font-size: 15px;
+  color: var(--text-h);
+}
+
+.field__control {
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 16px;
+  color: var(--text-h);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+textarea.field__control {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.field__control[aria-invalid="true"] {
+  border-color: #e5484d;
+}
+
+.field__hint {
+  font-size: 14px;
+}
+
+.field__error {
+  color: #e5484d;
+  font-size: 14px;
+}
+
+/* Общая вертикальная форма */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 420px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.form__row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
